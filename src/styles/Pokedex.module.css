@@ -1,0 +1,128 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+.title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.searchBar {
+    margin-bottom: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+.searchBar input {
+    width: 50%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.pokemonGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.pokemonItem {
+    list-style: none;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+}
+
+.pokemonItem:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pokemonImage {
+    max-width: 100px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.bookmarkButton {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+/* 북마크 추가 버튼 */
+.add {
+    background-color: #3c454f;
+}
+
+.add:hover {
+    background-color: #0c1398;
+}
+
+/* 북마크 제거 버튼 */
+.remove {
+    background-color: #a85c5c;
+}
+
+.remove:hover {
+    background-color: #ba0404;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pagination button {
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.pagination button:hover {
+    color: #45954c;
+    font-weight: bold;
+    transform: scale(1.05);
+}
+
+.pagination button:disabled {
+    color: #888;
+    cursor: not-allowed;
+}
+
+.paginationNumbers {
+    font-size: 18px;
+    font-weight: bold;
+    color: #444;
+}
+
+.bookmarkSection {
+    margin-top: 40px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
