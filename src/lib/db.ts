@@ -1,19 +1,29 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-let cached = global.mongoose;
+interface CachedConnection {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+declare global {
+  var mongoose: CachedConnection | undefined;
+}
+
+let cached = (global as any).mongoose as CachedConnection;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = {
+    conn: null,
+    promise: null,
+  };
 }
 
 async function dbConnect() {
   if (cached.conn) {
-    console.log("mongoose old");
     return cached.conn;
   }
 
   if (!cached.promise) {
-    console.log("mongoose new");
     const opts = {
       bufferCommands: false,
     };
