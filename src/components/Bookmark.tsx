@@ -13,7 +13,7 @@ interface Pokemon {
 
 interface BookmarkProps {
     bookmarkedPokemon: Pokemon[];
-    toggleBookmark: (pokemon: Pokemon) => void;
+    toggleBookmark: (pokemon: Pokemon) => Promise<void>;
 }
 
 const Bookmark = ({ bookmarkedPokemon, toggleBookmark }: BookmarkProps): React.JSX.Element => {

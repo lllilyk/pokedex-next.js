@@ -75,29 +75,45 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexProps): React.JSX.Element => {
     const [bookmarkedPokemon, setBookmarkedPokemon] = useState<Pokemon[]>([]);
 
-    // 로컬 스토리지에서 북마크 데이터 로드
     useEffect(() => {
-        const storedBookmarks = localStorage.getItem("bookmarkedPokemon");
-        if (storedBookmarks) {
-            setBookmarkedPokemon(JSON.parse(storedBookmarks));
-        }
+        const loadBookmarks = async () => {
+            try {
+                const response = await fetch('/api/bookmarks');
+                const data = await response.json();
+                setBookmarkedPokemon(data);
+            } catch (error) {
+                console.log('북마크 로드 실패:', error);
+            }
+        };
+        loadBookmarks();
     }, []);
 
     // 북마크 추가/제거 함수
-    const toggleBookmark = (pokemon: Pokemon) => {
+    const toggleBookmark = async (pokemon: Pokemon) => {
         const isBookmarked = bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId);
-        let updatedBookmarks;
-
-        if (isBookmarked) {
-            // 이미 북마크된 포켓몬이면 제거
-            updatedBookmarks = bookmarkedPokemon.filter((p) => p.pokemonId !== pokemon.pokemonId);
-        } else {
-            // 북마크에 추가
-            updatedBookmarks = [...bookmarkedPokemon, pokemon];
+        
+        try {
+            if (isBookmarked) {
+                // 북마크 삭제
+                await fetch(`/api/bookmarks?pokemonId=${pokemon.pokemonId}`, {
+                    method: 'DELETE'
+                });
+                setBookmarkedPokemon(prev => prev.filter(p => p.pokemonId !== pokemon.pokemonId))
+            } else {
+                // 북마크 추가
+                const response = await fetch('/api/bookmarks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(pokemon)
+                });
+                const newBookmark = await response.json();
+                setBookmarkedPokemon(prev => [...prev, newBookmark]);
+            }
+        } catch (error) {
+            console.error('북마크 토글 실패:', error);
         }
-
-        setBookmarkedPokemon(updatedBookmarks);
-        localStorage.setItem("bookmarkedPokemon", JSON.stringify(updatedBookmarks));
     };
 
     return (
