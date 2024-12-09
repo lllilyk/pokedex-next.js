@@ -1,10 +1,25 @@
 import apiClient from "./apiClient";
+interface PokemonType {
+    type: {
+        name: string;
+    };
+}
+
+interface PokemonStat {
+    stat: {
+        name: string;
+    };
+    base_stat: number;
+}
 
 interface PokemonData {
     id: number;
+    name: string;
     sprites: {
         front_default: string;
     };
+    types: PokemonType[];
+    stats: PokemonStat[];
     [key: string]: any;
 }
 
@@ -14,7 +29,6 @@ interface SpeciesData {
     names: { name: string; language: { name: string } }[];
 }
 
-// 포켓몬 상세 데이터
 export const fetchPokemonDetails = async (url: string) => {
     const pokemonData: PokemonData = await apiClient.get(url);
     const speciesData = await fetchPokemonSpecies(pokemonData.id);
@@ -25,10 +39,11 @@ export const fetchPokemonDetails = async (url: string) => {
         sprites: pokemonData.sprites,
         id: pokemonData.id,
         name: pokemonData.name,
+        types: pokemonData.types,
+        stats: pokemonData.stats,
     };
 };
 
-// 포켓몬 종 데이터
 export const fetchPokemonSpecies = async (id: number) => {
     const speciesData: SpeciesData = await apiClient.get(`/pokemon-species/${id}`);
     const koreanGenus = speciesData.genera.find((genus: any) => genus.language.name === "ko")?.genus;
@@ -39,4 +54,3 @@ export const fetchPokemonSpecies = async (id: number) => {
         koreanName: koreanName || speciesData.name,
     };
 };
-
