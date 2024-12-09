@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case 'GET':
             try {
-                const pokemon = await Pokemon.findOne({ id: id });
+                const pokemon = await Pokemon.findOne({ pokemonId: Number(id) });
                 if (!pokemon) {
                     return res.status(404).json({ error: 'Pokemon을 발견하지 못했습니다.' });
                 }
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case 'PUT':
             try {
                 const pokemon = await Pokemon.findOneAndUpdate(
-                    { id: id },
+                    { pokemonId: Number(id) },
                     req.body,
                     { new: true, runValidators: true }
                 );
@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         case 'DELETE':
             try {
-                const pokemon = await Pokemon.findOneAndDelete({ id: id });
+                const pokemon = await Pokemon.findOneAndDelete({ pokemonId: Number(id) });
                 if (!pokemon) {
                     return res.status(404).json({ error: 'Pokemon을 발견하지 못했습니다. '});
                 }
