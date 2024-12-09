@@ -7,7 +7,7 @@ import Bookmark from "../components/Bookmark";
 import styles from "../styles/Pokedex.module.css";
 
 interface Pokemon {
-    id: number;
+    pokemonId: number;
     name: string;
     koreanName: string;
     sprites: {
@@ -36,33 +36,23 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const { search = "", page = "1" } = context.query;
         const searchQuery = decodeURIComponent((search as string).trim().toLowerCase());
         const currentPage = parseInt(page as string, 10);
-        const limit = 20; // 한 페이지에 표시할 포켓몬 수
+        const limit = 20;
         const offset = (currentPage - 1) * limit;
 
-        // 전체 포켓몬 리스트 가져오기
-        const apiUrl = `/pokemon?limit=151`;
-        const { results: allPokemon }: ApiResponse<PokemonApiResult> = await apiClient.get(apiUrl);
+        // MongoDB에서 데이터 가져오기
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon`);
+        const allPokemon = await res.json();
 
-        const detailedPokemon = await Promise.all(
-            allPokemon.map(async (pokemon: { name: string; url: string }) => {
-                const details = await fetchPokemonDetails(pokemon.url);
-                return details;
-            })
-        );
-
-        // 검색 필터링 (detailedPokemon 기준으로 검색어 필터링)
-        const filteredPokemon = detailedPokemon.filter((pokemon: Pokemon) =>
+        // 검색 필터링
+        const filteredPokemon = allPokemon.filter((pokemon: Pokemon) =>
             pokemon.name.toLowerCase().includes(searchQuery) ||
             pokemon.koreanName.toLowerCase().includes(searchQuery) ||
-            pokemon.id.toString() === searchQuery
+            pokemon.pokemonId.toString() === searchQuery
         );
-
-        // 페이지네이션 처리
-        const paginatedPokemon = filteredPokemon.slice(offset, offset + limit);
 
         return {
             props: {
-                pokemonList: paginatedPokemon,
+                pokemonList: filteredPokemon.slice(offset, offset + limit),
                 currentPage,
                 totalPages: Math.ceil(filteredPokemon.length / limit),
                 searchQuery,
@@ -95,12 +85,12 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
 
     // 북마크 추가/제거 함수
     const toggleBookmark = (pokemon: Pokemon) => {
-        const isBookmarked = bookmarkedPokemon.some((p) => p.id === pokemon.id);
+        const isBookmarked = bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId);
         let updatedBookmarks;
 
         if (isBookmarked) {
             // 이미 북마크된 포켓몬이면 제거
-            updatedBookmarks = bookmarkedPokemon.filter((p) => p.id !== pokemon.id);
+            updatedBookmarks = bookmarkedPokemon.filter((p) => p.pokemonId !== pokemon.pokemonId);
         } else {
             // 북마크에 추가
             updatedBookmarks = [...bookmarkedPokemon, pokemon];
@@ -130,13 +120,13 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
 
             <ul className={styles.pokemonGrid}>
                 {pokemonList.map((pokemon) => (
-                    <li key={pokemon.id} className={styles.pokemonItem}>
+                    <li key={pokemon.pokemonId} className={styles.pokemonItem}>
                         <h3>
-                            <Link href={`/poke/${pokemon.id}`}>
-                                #{pokemon.id}. {pokemon.koreanName} ({pokemon.name})
-                            </Link>
+                        <Link href={`/poke/${pokemon.pokemonId}`}>
+                            #{pokemon.pokemonId}. {pokemon.koreanName} ({pokemon.name})
+                        </Link>
                         </h3>
-                        <Link href={`/poke/${pokemon.id}`}>
+                        <Link href={`/poke/${pokemon.pokemonId}`}>
                             <img
                                 className={styles.pokemonImage}
                                 src={pokemon.sprites.front_default}
@@ -146,10 +136,10 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
                         <button
                             onClick={() => toggleBookmark(pokemon)}
                             className={`${styles.bookmarkButton} ${
-                                bookmarkedPokemon.some((p) => p.id === pokemon.id) ? styles.remove : styles.add
+                                bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId) ? styles.remove : styles.add
                             }`}
                         >
-                            {bookmarkedPokemon.some((p) => p.id === pokemon.id) ? "북마크 제거" : "북마크"}
+                            {bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId) ? "북마크 제거" : "북마크"}
                         </button>
                     </li>
                 ))}
