@@ -40,6 +40,7 @@
 
 .details {
   margin-top: 2rem;
+  position: relative;  
 }
 
 .detailRow {
@@ -156,4 +157,21 @@
   width: 100%;
   max-width: 300px;
   margin: 0 auto;
+}
+
+.viewCount {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.viewCount .label {
+  width: auto;
+  margin-right: 4px;
+}
+
+.viewCount .value {
+  color: #666;
 }
