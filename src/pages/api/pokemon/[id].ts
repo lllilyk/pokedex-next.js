@@ -9,12 +9,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case 'GET':
             try {
-                const pokemon = await Pokemon.findOne({ pokemonId: Number(id) });
+                const { skipViewCount } = req.query;
+                
+                let pokemon;
+                if (skipViewCount === 'true') {
+                    // skipViewCount가 true면 조회수 증가 없이 조회만
+                    pokemon = await Pokemon.findOne({ pokemonId: Number(id) });
+                } else {
+                    // 일반 조회 시 조회수 증가
+                    pokemon = await Pokemon.findOneAndUpdate(
+                        { pokemonId: Number(id) },
+                        { $inc: { viewCount: 1} },
+                        { new: true }
+                    );
+                }
+
                 if (!pokemon) {
                     return res.status(404).json({ error: 'Pokemon을 발견하지 못했습니다.' });
                 }
                 res.status(200).json(pokemon);
             } catch (error) {
+                console.error('조회수 업데이트 실패: ', error);
                 res.status(500).json({ error: '포켓몬 Fetch 실패' });
             }
             break;

@@ -1,25 +1,32 @@
 import React, { useState } from "react";
 import { GetServerSideProps } from "next";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
+import { PokemonDetail } from "../../../types/pokemon";
 import styles from "../../../styles/PokemonDetail.module.css";
 
 interface PokemonDetailProps {
-    pokemon: {
-        pokemonId: number;
-        name: string;
-        koreanName: string;
-        genus: string;
-        sprites: {
-            front_default: string;
-        };
-        types: { name: string; _id: string }[]; 
-        stats: {
-            stat: { name: string };
-            base_stat: string; 
-            _id: string;
-        }[];
-    };
+    pokemon: PokemonDetail
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+    const { id } = context.params as { id: string };
+    
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon/${id}`);
+    
+    if (!res.ok) {
+        return {
+            notFound: true
+        };
+    }
+
+    const pokemon = await res.json();
+
+    return {
+        props: {
+            pokemon,
+        },
+    };
+};
 
 const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
     const router = useRouter();
@@ -61,19 +68,15 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
         }
     };
 
-    // stats 수정을 위함
     const handleStatChange = (statName: string, newValue: string) => {
         setEditedPokemon({
             ...editedPokemon,
             stats: editedPokemon.stats.map(stat => 
-                stat.stat.name === statName 
-                    ? { ...stat, base_stat: newValue }
-                    : stat
+                stat.stat.name === statName ? { ...stat, base_stat: newValue } : stat
             )
         });
     };
 
-    // types 수정을 위함
     const handleTypeChange = (index: number, newValue: string) => {
         const newTypes = [...editedPokemon.types];
         newTypes[index] = { ...newTypes[index], name: newValue };
@@ -86,6 +89,10 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
     return (
         <div className={styles.container}>
             <div className={styles.card}>
+            <div className={styles.viewCount}>
+                <span className={styles.label}>조회수:</span>
+                <span className={styles.value}>{pokemon.viewCount || 0}회</span>
+            </div>
                 <div className={styles.header}>
                     {isEditing ? (
                         <input 
@@ -119,13 +126,11 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
                         <h1>{pokemon.koreanName} ({pokemon.name})</h1>
                     )}
                 </div>
-
                 <img
                     src={pokemon.sprites.front_default}
                     alt={pokemon.koreanName}
                     className={styles.pokemonImage}
                 />
-
                 <div className={styles.details}>
                     <div className={styles.detailRow}>
                         <span className={styles.label}>타입:</span>
@@ -144,7 +149,6 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
                             <span className={styles.value}>{pokemon.types.map(type => type.name).join(", ")}</span>
                         )}
                     </div>
-
                     <div className={styles.detailRow}>
                         <span className={styles.label}>분류:</span>
                         {isEditing ? (
@@ -160,7 +164,6 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
                             <span className={styles.value}>{pokemon.genus}</span>
                         )}
                     </div>
-
                     <div className={styles.statsSection}>
                         <h3>능력치:</h3>
                         <div className={styles.stats}>
@@ -199,26 +202,6 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
             </div>
         </div>
     );
-};
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { id } = context.params as { id: string };
-    
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon/${id}`);
-    
-    if (!res.ok) {
-        return {
-            notFound: true
-        };
-    }
-
-    const pokemon = await res.json();
-
-    return {
-        props: {
-            pokemon,
-        },
-    };
 };
 
 export default PokemonDetail;
