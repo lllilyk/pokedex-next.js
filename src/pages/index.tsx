@@ -1,28 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { GetServerSideProps } from "next";
-import apiClient from "../lib/apiClient";
-import { fetchPokemonDetails } from "../lib/pokemonApi";
 import Bookmark from "../components/Bookmark";
+import { useBookmarks } from "../hooks/useBookmarks";
 import styles from "../styles/Pokedex.module.css";
-
-interface Pokemon {
-    pokemonId: number;
-    name: string;
-    koreanName: string;
-    sprites: {
-        front_default: string;
-    };
-}
-
-interface PokemonApiResult {
-    name: string;
-    url: string;
-}
-
-interface ApiResponse<T> {
-    results: T[];
-}
+import { Pokemon, BookmarkPokemon } from "../types/pokemon";
+import { Eye, BookmarkMinus, BookmarkPlus } from "lucide-react";
 
 interface PokedexProps {
     pokemonList: Pokemon[];
@@ -48,7 +31,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             pokemon.name.toLowerCase().includes(searchQuery) ||
             pokemon.koreanName.toLowerCase().includes(searchQuery) ||
             pokemon.pokemonId.toString() === searchQuery
-        );
+        )
+        .sort((a: Pokemon, b: Pokemon) => a.pokemonId - b.pokemonId);
 
         return {
             props: {
@@ -71,55 +55,30 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
 };
 
-
 const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexProps): React.JSX.Element => {
-    const [bookmarkedPokemon, setBookmarkedPokemon] = useState<Pokemon[]>([]);
+    const { bookmarks, isLoading, addBookmark, removeBookmark } = useBookmarks();
 
-    useEffect(() => {
-        const loadBookmarks = async () => {
-            try {
-                const response = await fetch('/api/bookmarks');
-                const data = await response.json();
-                setBookmarkedPokemon(data);
-            } catch (error) {
-                console.log('북마크 로드 실패:', error);
-            }
-        };
-        loadBookmarks();
-    }, []);
-
-    // 북마크 추가/제거 함수
-    const toggleBookmark = async (pokemon: Pokemon) => {
-        const isBookmarked = bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId);
-        
+    const toggleBookmark = async (pokemon: BookmarkPokemon) => {
+        const isBookmarked = bookmarks.some((p: BookmarkPokemon) => p.pokemonId === pokemon.pokemonId);
         try {
-            if (isBookmarked) {
-                // 북마크 삭제
-                await fetch(`/api/bookmarks?pokemonId=${pokemon.pokemonId}`, {
-                    method: 'DELETE'
-                });
-                setBookmarkedPokemon(prev => prev.filter(p => p.pokemonId !== pokemon.pokemonId))
-            } else {
-                // 북마크 추가
-                const response = await fetch('/api/bookmarks', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(pokemon)
-                });
-                const newBookmark = await response.json();
-                setBookmarkedPokemon(prev => [...prev, newBookmark]);
-            }
+          if (isBookmarked) {
+            await removeBookmark.mutateAsync(pokemon.pokemonId);
+          } else {
+            await addBookmark.mutateAsync(pokemon);
+          }
         } catch (error) {
-            console.error('북마크 토글 실패:', error);
+          console.error('북마크 토글 실패:', error);
         }
-    };
+      };
+
+      if (isLoading) {
+        return <div>북마크 로딩 중...</div>;
+      }
 
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>포켓몬 도감</h1>
-
+            
             <div className={styles.searchBar}>
                 <input
                     type="text"
@@ -137,26 +96,33 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
             <ul className={styles.pokemonGrid}>
                 {pokemonList.map((pokemon) => (
                     <li key={pokemon.pokemonId} className={styles.pokemonItem}>
-                        <h3>
-                        <Link href={`/poke/${pokemon.pokemonId}`}>
-                            #{pokemon.pokemonId}. {pokemon.koreanName} ({pokemon.name})
-                        </Link>
-                        </h3>
-                        <Link href={`/poke/${pokemon.pokemonId}`}>
+                        <div className={styles.cardHeader}>
+                            <div className={styles.viewCount}>
+                                <Eye size={14} />
+                                {pokemon.viewCount}
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    const { pokemonId, name, koreanName, sprites } = pokemon;
+                                    toggleBookmark({ pokemonId, name, koreanName, sprites });
+                                }}
+                                className={styles.bookmarkButton}
+                                data-active={bookmarks.some((p: BookmarkPokemon) => p.pokemonId === pokemon.pokemonId)}
+                            >
+                                {bookmarks.some((p: BookmarkPokemon) => p.pokemonId === pokemon.pokemonId) 
+                                    ? <BookmarkMinus size={18} /> 
+                                    : <BookmarkPlus size={18} />
+                                }
+                            </button>
+                        </div>
+                        <Link href={`/poke/${pokemon.pokemonId}`} className={styles.pokemonContent}>
+                            <h3>#{pokemon.pokemonId}. {pokemon.koreanName} ({pokemon.name})</h3>
                             <img
                                 className={styles.pokemonImage}
                                 src={pokemon.sprites.front_default}
                                 alt={pokemon.name}
                             />
                         </Link>
-                        <button
-                            onClick={() => toggleBookmark(pokemon)}
-                            className={`${styles.bookmarkButton} ${
-                                bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId) ? styles.remove : styles.add
-                            }`}
-                        >
-                            {bookmarkedPokemon.some((p) => p.pokemonId === pokemon.pokemonId) ? "북마크 제거" : "북마크"}
-                        </button>
                     </li>
                 ))}
             </ul>
@@ -186,7 +152,7 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
                     다음
                 </button>
             </div>
-            <Bookmark bookmarkedPokemon={bookmarkedPokemon} toggleBookmark={toggleBookmark} />
+            <Bookmark bookmarkedPokemon={bookmarks} toggleBookmark={toggleBookmark} />
         </div>
     );
 };
