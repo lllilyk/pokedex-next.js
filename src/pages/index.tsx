@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { GetServerSideProps } from "next";
+import Image from 'next/image';
 import Bookmark from "../components/Bookmark";
 import { useBookmarks } from "../hooks/useBookmarks";
 import styles from "../styles/Pokedex.module.css";
@@ -117,10 +118,12 @@ const Pokedex = ({ pokemonList, currentPage, totalPages, searchQuery }: PokedexP
                         </div>
                         <Link href={`/poke/${pokemon.pokemonId}`} className={styles.pokemonContent}>
                             <h3>#{pokemon.pokemonId}. {pokemon.koreanName} ({pokemon.name})</h3>
-                            <img
+                            <Image
                                 className={styles.pokemonImage}
                                 src={pokemon.sprites.front_default}
                                 alt={pokemon.name}
+                                width={180}
+                                height={180}
                             />
                         </Link>
                     </li>
