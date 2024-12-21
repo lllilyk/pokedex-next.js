@@ -21,25 +21,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const searchQuery = decodeURIComponent((search as string).trim().toLowerCase());
         const currentPage = parseInt(page as string, 10);
         const limit = 20;
-        const offset = (currentPage - 1) * limit;
 
-        // MongoDB에서 데이터 가져오기
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon`);
-        const allPokemon = await res.json();
-
-        // 검색 필터링
-        const filteredPokemon = allPokemon.filter((pokemon: Pokemon) =>
-            pokemon.name.toLowerCase().includes(searchQuery) ||
-            pokemon.koreanName.toLowerCase().includes(searchQuery) ||
-            pokemon.pokemonId.toString() === searchQuery
-        )
-        .sort((a: Pokemon, b: Pokemon) => a.pokemonId - b.pokemonId);
+        // API 호출 시 검색어와 페이지 정보를 쿼리스트링으로 전달
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon?search=${searchQuery}&page=${currentPage}&limit=${limit}`
+        );
+        const { pokemons, totalPages } = await res.json();
 
         return {
             props: {
-                pokemonList: filteredPokemon.slice(offset, offset + limit),
+                pokemonList: pokemons,
                 currentPage,
-                totalPages: Math.ceil(filteredPokemon.length / limit),
+                totalPages,
                 searchQuery,
             },
         };
