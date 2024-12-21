@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
+import Image from 'next/image';
 import { PokemonDetail } from "../../../types/pokemon";
 import styles from "../../../styles/PokemonDetail.module.css";
 
@@ -28,7 +29,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
 };
 
-const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
+const PokemonDetailPage = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     const [editedPokemon, setEditedPokemon] = useState(pokemon);
@@ -126,9 +127,11 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
                         <h1>{pokemon.koreanName} ({pokemon.name})</h1>
                     )}
                 </div>
-                <img
+                <Image
                     src={pokemon.sprites.front_default}
                     alt={pokemon.koreanName}
+                    width={180}
+                    height={180}
                     className={styles.pokemonImage}
                 />
                 <div className={styles.details}>
@@ -204,4 +207,4 @@ const PokemonDetail = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {
     );
 };
 
-export default PokemonDetail;
+export default PokemonDetailPage;

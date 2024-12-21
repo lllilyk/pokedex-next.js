@@ -5,4 +5,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
+module.exports = {
+  images: {
+    domains: ['raw.githubusercontent.com'], // Pokemon API 이미지 도메인
+  },
+}
 export default nextConfig;
