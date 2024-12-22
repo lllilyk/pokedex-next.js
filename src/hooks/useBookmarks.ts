@@ -3,12 +3,13 @@ import { BookmarkPokemon } from '../types/pokemon';
 
 export function useBookmarks() {
   const queryClient = useQueryClient();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   // 북마크 조회
   const { data: bookmarks = [], isLoading, error } = useQuery({
     queryKey: ['bookmarks'],
     queryFn: async () => {
-      const response = await fetch('/api/bookmarks');
+      const response = await fetch(`${baseUrl}/bookmarks`);
       return response.json();
     }
   });
@@ -23,7 +24,7 @@ export function useBookmarks() {
         sprites: pokemon.sprites
       };
 
-      const response = await fetch('/api/bookmarks', {
+      const response = await fetch(`${baseUrl}/bookmarks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookmarkData)
@@ -38,7 +39,7 @@ export function useBookmarks() {
   // 북마크 삭제
   const removeBookmark = useMutation({
     mutationFn: async (pokemonId: number) => {
-      await fetch(`/api/bookmarks?pokemonId=${pokemonId}`, {
+      await fetch(`${baseUrl}/bookmarks?pokemonId=${pokemonId}`, {
         method: 'DELETE'
       });
     },

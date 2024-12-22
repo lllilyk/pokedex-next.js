@@ -12,21 +12,27 @@ interface PokemonDetailProps {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { id } = context.params as { id: string };
     
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon/${id}`);
-    
-    if (!res.ok) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/pokemon/${id}`);
+        
+        if (!res.ok) {
+            return {
+                notFound: true
+            };
+        }
+
+        const pokemon = await res.json();
+
+        return {
+            props: {
+                pokemon,
+            },
+        };
+    } catch (error) {
         return {
             notFound: true
         };
     }
-
-    const pokemon = await res.json();
-
-    return {
-        props: {
-            pokemon,
-        },
-    };
 };
 
 const PokemonDetailPage = ({ pokemon }: PokemonDetailProps): React.JSX.Element => {

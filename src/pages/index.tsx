@@ -22,18 +22,23 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const currentPage = parseInt(page as string, 10);
         const limit = 20;
 
-        // API 호출 시 검색어와 페이지 정보를 쿼리스트링으로 전달
+        // NestJS API 호출로 변경
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/pokemon?search=${searchQuery}&page=${currentPage}&limit=${limit}`
+            `${process.env.NEXT_PUBLIC_BASE_URL}/pokemon?search=${searchQuery}&page=${currentPage}&limit=${limit}`
         );
-        const { pokemons, totalPages } = await res.json();
+        
+        if (!res.ok) {
+            throw new Error('API request failed');
+        }
+
+        const data = await res.json();
 
         return {
             props: {
-                pokemonList: pokemons,
-                currentPage,
-                totalPages,
-                searchQuery,
+                pokemonList: data.pokemons || [], // null 대신 빈 배열 반환
+                currentPage: data.currentPage || 1,
+                totalPages: data.totalPages || 1,
+                searchQuery: searchQuery || "",
             },
         };
     } catch (error) {
